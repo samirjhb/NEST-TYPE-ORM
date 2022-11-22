@@ -8,18 +8,27 @@ import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 import { PostsModule } from './posts/posts.module';
 import { Post } from './posts/entities/post.entity';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3312,
-      username: 'samir',
-      password: 'secret',
-      database: 'Db',
-      entities: [User, Profile, Post],
-      synchronize: true,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get('DB_HOST'),
+        port: +configService.get('DB_PORT'),
+        username: configService.get('DB_USER'),
+        password: configService.get('DB_PASS'),
+        database: configService.get('DB_DATABASE'),
+        entities: [User, Profile, Post],
+        synchronize: true,
+      }),
+      inject: [ConfigService],
+    }),
+    //. env
+    ConfigModule.forRoot({
+      isGlobal: true,
     }),
     UsersModule,
     PostsModule,
